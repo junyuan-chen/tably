@@ -22,6 +22,7 @@ FOOTER = r"""{indent}{indent}\bottomrule
 
 LABEL = '\n{indent}\\label{{{label}}}'
 CAPTION = '\n{indent}\\caption{{{caption}}}'
+ESCAPE = True
 
 
 class Tably:
@@ -48,7 +49,9 @@ class Tably:
             preamble(bool): create a preamble
             sep (string): column separator
             units (list): units for each column
+            no_escape (bool): do not escape special LaTeX characters
             fragment (bool): only output content in tabular environment
+            fragment_skip_header (bool): shortcut of passing -k 1 -n -f
             replace (bool): replace exisitng output file if -o is passed
         """
         self.files = args.files
@@ -62,6 +65,7 @@ class Tably:
         self.preamble = args.preamble
         self.sep = get_sep(args.sep)
         self.units = args.units
+        self.no_escape = args.no_escape
         self.fragment = args.fragment
         self.fragment_skip_header = args.fragment_skip_header
         self.replace = args.replace
@@ -74,6 +78,10 @@ class Tably:
         otherwise prints to the console.
         """
         all_tables = []
+
+        if self.no_escape:
+            global ESCAPE
+            ESCAPE = False
 
         if self.fragment_skip_header:
             self.skip = 1
@@ -204,8 +212,9 @@ def add_caption(caption, indent):
 
 def escaped(line):
     """Escapes special LaTeX characters by prefixing them with backslash"""
-    for char in '#$%&_}{':
-        line = [column.replace(char, '\\'+char) for column in line]
+    if ESCAPE:
+        for char in '#$%&_}{':
+            line = [column.replace(char, '\\'+char) for column in line]
     return line
 
 
@@ -305,6 +314,11 @@ def arg_parser():
         help='Provide units for each column. If column has no unit, denote it '
              'by passing either `-`, `/` or `0`. If `--no-header` is used, '
              'this argument is ignored.'
+    )
+    parser.add_argument(
+        '-e', '--no-escape',
+        action='store_true',
+        help='If selected, do not escape special LaTeX characters '
     )
     parser.add_argument(
         '-f', '--fragment',
