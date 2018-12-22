@@ -174,14 +174,14 @@ it will be replaced by the output (-r).
 ---
 
 ```bash
-$ tably -p examples/*.csv -oo 1.tex 2.tex 3.tex
+$ tably examples/*.csv -oo 1.tex 2.tex 3.tex -p
 ```
 
 Output for each table can be saved into a different file
-with the --separate-outfiles (-oo) option specified at the end (or before some other option to avoid being mixed with input files).
+with the --separate-outfiles (-oo) option and an optional list of output file names specified.
 If no file name comes after -oo,
 the same file names for the .csv files will be used
-(replacing .csv with .tex, or appending .tex if no .csv extension is included).
+(replacing .csv extension with .tex, or appending .tex if no .csv extension is included in the filename).
 
 
 # FAQ
