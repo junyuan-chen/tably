@@ -80,7 +80,6 @@ class Tably:
         otherwise prints to the console.
         """
         all_tables = []
-        print(self.files)
 
         if self.no_escape:
             global ESCAPE
@@ -119,9 +118,9 @@ class Tably:
         elif self.separate_outfiles is not None: # if -oo is passed
             outs = self.separate_outfiles
             if len(outs) == 0:
-                outs = [ file.replace('.csv', '.tex') if '.csv' in file else file+'.tex' for file in self.files]
+                outs = [ file[:-4]+'.tex' if file[-4:]=='.csv' else file+'.tex' for file in self.files]
             elif len(outs) != len(self.files):
-                print('WARNING: Number of .cvs files and number of output files are not equal')
+                print('WARNING: Number of .cvs files and number of output files do not match')
             for file, out in zip(self.files, outs):
                 self.save_each_table(file, out)
         else:
