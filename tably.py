@@ -33,24 +33,24 @@ class Tably:
         """
         Attributes:
             files (string): name(s) of the .csv file(s)
-            align (string): wanted alignment of the columns
-            caption (string): the name of the table, printed above it
-            indent (bool): should a LaTeX code be indented with 4 spaces per
-                code block. Doesn't affect the final looks of the table.
-            label (string): a label by which the table can be referenced
             no_header (bool): if the .csv contains only content, without a
                 header (names for the columns)
+            caption (string): the name of the table, printed above it
+            label (string): a label by which the table can be referenced
+            align (string): wanted alignment of the columns
+            no_indent (bool): should a LaTeX code be indented with 4 spaces per
+                code block. Doesn't affect the final looks of the table.
             outfile (string): name of the file where to save the results.
+            skip (int): number of rows in .csv to skip
             preamble(bool): create a preamble
             sep (string): column separator
-            skip (int): number of rows in .csv to skip
             units (list): units for each column
             fragment (bool): only output content in tabular environment
         """
         self.files = args.files
         self.no_header = args.no_header
-        self.label = args.label
         self.caption = args.caption
+        self.label = args.label
         self.align = args.align
         self.no_indent = args.no_indent
         self.outfile = args.outfile
@@ -68,7 +68,13 @@ class Tably:
         otherwise prints to the console.
         """
         all_tables = []
-        if not self.fragment and self.label and len(self.files) > 1:
+
+        if self.fragment:
+            self.no_indent=True
+            self.label=None
+            self.preamble=False
+        
+        if self.label and len(self.files) > 1:
             all_tables.append("% don't forget to manually re-label the tables")
         for file in self.files:
             table = self.create_table(file)
@@ -77,7 +83,7 @@ class Tably:
         if not all_tables:
             return
 
-        if not self.fragment and self.preamble:
+        if self.preamble:
             all_tables.insert(0, PREAMBLE)
             all_tables.append('\\end{document}\n')
         else:
