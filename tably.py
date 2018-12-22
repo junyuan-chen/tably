@@ -45,6 +45,7 @@ class Tably:
             no_indent (bool): should a LaTeX code be indented with 4 spaces per
                 code block. Doesn't affect the final looks of the table.
             outfile (string): name of the file where to save the results.
+            separate_outfiles (list): names of the files where each table is saved
             skip (int): number of rows in .csv to skip
             preamble(bool): create a preamble
             sep (string): column separator
@@ -61,6 +62,7 @@ class Tably:
         self.align = args.align
         self.no_indent = args.no_indent
         self.outfile = args.outfile
+        self.separate_outfiles = args.separate_outfiles
         self.skip = args.skip
         self.preamble = args.preamble
         self.sep = get_sep(args.sep)
@@ -78,6 +80,7 @@ class Tably:
         otherwise prints to the console.
         """
         all_tables = []
+        print(self.files)
 
         if self.no_escape:
             global ESCAPE
@@ -95,6 +98,7 @@ class Tably:
         
         if self.label and len(self.files) > 1:
             all_tables.append("% don't forget to manually re-label the tables")
+        
         for file in self.files:
             table = self.create_table(file)
             if table:
@@ -112,6 +116,14 @@ class Tably:
                 save_content(final_content, self.outfile, self.replace)
             except FileNotFoundError:
                 print('{} is not a valid/known path. Could not save there.'.format(self.outfile))
+        elif self.separate_outfiles is not None: # if -oo is passed
+            outs = self.separate_outfiles
+            if len(outs) == 0:
+                outs = [ file.replace('.csv', '.tex') if '.csv' in file else file+'.tex' for file in self.files]
+            elif len(outs) != len(self.files):
+                print('WARNING: Number of .cvs files and number of output files are not equal')
+            for file, out in zip(self.files, outs):
+                self.save_each_table(file, out)
         else:
             print(final_content)
 
@@ -156,6 +168,17 @@ class Tably:
             return '\n'.join((header, content, footer))
         else:
             return content
+    def save_each_table(self, file, out):
+        table = [self.create_table(file)]
+        if table:
+            if self.preamble:
+                table.insert(0, PREAMBLE)
+                table.append('\\end{document}\n')
+            final_content = '\n\n'.join(table)
+            try:
+                save_content(final_content, out, self.replace)
+            except FileNotFoundError:
+                print('{} is not a valid/known path. Could not save there.'.format(out))
 
 
 def get_sep(sep):
@@ -292,6 +315,15 @@ def arg_parser():
         help='Choose an output file to save the results. '
              'The results are appended to the file (added after the last line). '
              'Default: None, prints to console.'
+    )
+    parser.add_argument(
+        '-oo', '--separate-outfiles',
+        nargs='*',
+        help='When multiple .csv files need to be processed, '
+             'pass a list of filenames after -oo at the end of the command '
+             'to save each individual table to one of the files based on order. '
+             'If no filenames are passed after -oo, '
+             'filenames of .csv files will be used. '
     )
     parser.add_argument(
         '-p', '--preamble',
