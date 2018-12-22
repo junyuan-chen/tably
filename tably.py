@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# To directly call tably from shell, set a symbolic link by running
+# ln -sf $PWD/tably.py /usr/local/bin/tably
+
 import argparse
 import csv
 
@@ -60,6 +63,7 @@ class Tably:
         self.sep = get_sep(args.sep)
         self.units = args.units
         self.fragment = args.fragment
+        self.fragment_skip_header = args.fragment_skip_header
         self.replace = args.replace
 
     def run(self):
@@ -71,10 +75,15 @@ class Tably:
         """
         all_tables = []
 
+        if self.fragment_skip_header:
+            self.skip = 1
+            self.no_header = True
+            self.fragment = True
+
         if self.fragment:
-            self.no_indent=True
-            self.label=None
-            self.preamble=False
+            self.no_indent = True
+            self.label = None
+            self.preamble = False
         
         if self.label and len(self.files) > 1:
             all_tables.append("% don't forget to manually re-label the tables")
@@ -88,8 +97,6 @@ class Tably:
         if self.preamble:
             all_tables.insert(0, PREAMBLE)
             all_tables.append('\\end{document}\n')
-        else:
-            all_tables.insert(0, '\n')
 
         final_content = '\n\n'.join(all_tables)
         if self.outfile:
@@ -304,6 +311,12 @@ def arg_parser():
         action='store_true',
         help='If selected, only output content inside tabular environment '
              '(no preamble, table environment, etc.) '
+    )
+    parser.add_argument(
+        '-ff', '--fragment-skip-header',
+        action='store_true',
+        help='Equivalent to passing -k 1 -n -f '
+             '(suppress header when they are on the first row of .csv and pass -f) '
     )
     parser.add_argument(
         '-r', '--replace',
