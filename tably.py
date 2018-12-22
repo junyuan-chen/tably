@@ -46,6 +46,7 @@ class Tably:
             sep (string): column separator
             units (list): units for each column
             fragment (bool): only output content in tabular environment
+            replace (bool): replace exisitng output file if -o is passed
         """
         self.files = args.files
         self.no_header = args.no_header
@@ -59,6 +60,7 @@ class Tably:
         self.sep = get_sep(args.sep)
         self.units = args.units
         self.fragment = args.fragment
+        self.replace = args.replace
 
     def run(self):
         """The main method.
@@ -92,7 +94,7 @@ class Tably:
         final_content = '\n\n'.join(all_tables)
         if self.outfile:
             try:
-                save_content(final_content, self.outfile)
+                save_content(final_content, self.outfile, self.replace)
             except FileNotFoundError:
                 print('{} is not a valid/known path. Could not save there.'.format(self.outfile))
         else:
@@ -207,15 +209,21 @@ def create_row(line, indent):
              content=' & '.join(escaped(line)))
 
 
-def save_content(content, outfile):
+def save_content(content, outfile, replace):
     """Saves the content to a file.
 
-    If the existing file is provided, the content is appended to the end
-    of the file.
+    If an existing file is provided, the content is appended to the end
+    of the file by default. If -r is passed, the file is overwritten.
     """
-    with open(outfile, 'a') as out:
-        out.writelines(content)
-    print('The content is added to', outfile)
+    if replace:
+        with open(outfile, 'w') as out:
+            out.writelines(content)
+        print('The content is written to', outfile)
+    else:
+        with open(outfile, 'a') as out:
+            out.writelines(content)
+        print('The content is appended to', outfile)
+    
 
 
 def arg_parser():
@@ -296,6 +304,11 @@ def arg_parser():
         action='store_true',
         help='If selected, only output content inside tabular environment '
              '(no preamble, table environment, etc.) '
+    )
+    parser.add_argument(
+        '-r', '--replace',
+        action='store_true',
+        help='If selected and -o is passed, overwrite any existing output file '
     )
     return parser.parse_args()
 
