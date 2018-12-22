@@ -45,6 +45,7 @@ class Tably:
             sep (string): column separator
             skip (int): number of rows in .csv to skip
             units (list): units for each column
+            fragment (bool): only output content in tabular environment
         """
         self.files = args.files
         self.no_header = args.no_header
@@ -57,6 +58,7 @@ class Tably:
         self.preamble = args.preamble
         self.sep = get_sep(args.sep)
         self.units = args.units
+        self.fragment = args.fragment
 
     def run(self):
         """The main method.
@@ -66,7 +68,7 @@ class Tably:
         otherwise prints to the console.
         """
         all_tables = []
-        if self.label and len(self.files) > 1:
+        if not self.fragment and self.label and len(self.files) > 1:
             all_tables.append("% don't forget to manually re-label the tables")
         for file in self.files:
             table = self.create_table(file)
@@ -75,12 +77,11 @@ class Tably:
         if not all_tables:
             return
 
-        if self.preamble:
+        if not self.fragment and self.preamble:
             all_tables.insert(0, PREAMBLE)
             all_tables.append('\\end{document}\n')
         else:
-            all_tables.insert(0, '\n% \\usepackage{booktabs} % move this to '
-                                 'preamble and uncomment')
+            all_tables.insert(0, '\n')
 
         final_content = '\n\n'.join(all_tables)
         if self.outfile:
@@ -120,15 +121,18 @@ class Tably:
                 units = get_units(self.units)
                 rows.insert(1, r'{0}{0}{1} \\'.format(indent, units))
 
-        header = HEADER.format(
+        content = '\n'.join(rows)
+        if not self.fragment:
+            header = HEADER.format(
             label=add_label(self.label, indent),
             caption=add_caption(self.caption, indent),
             align=format_alignment(self.align, len(columns)),
             indent=indent,
-        )
-        content = '\n'.join(rows)
-        footer = FOOTER.format(indent=indent)
-        return '\n'.join((header, content, footer))
+            )
+            footer = FOOTER.format(indent=indent)
+            return '\n'.join((header, content, footer))
+        else:
+            return content
 
 
 def get_sep(sep):
@@ -280,6 +284,12 @@ def arg_parser():
         help='Provide units for each column. If column has no unit, denote it '
              'by passing either `-`, `/` or `0`. If `--no-header` is used, '
              'this argument is ignored.'
+    )
+    parser.add_argument(
+        '-f', '--fragment',
+        action='store_true',
+        help='If selected, only output content inside tabular environment '
+             '(no preamble, table environment, etc.) '
     )
     return parser.parse_args()
 
