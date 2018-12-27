@@ -91,7 +91,7 @@ class Tably:
             self.preamble = False
         
         # if all tables need to be put into one file
-        if self.outfile or self.separate_outfiles is not None:
+        if self.outfile or self.separate_outfiles is None:
             final_content = self.combine_tables()
             if not final_content:
                 return
