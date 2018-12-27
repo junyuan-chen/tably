@@ -177,8 +177,9 @@ it will be replaced by the output (-r).
 $ tably examples/*.csv -oo 1.tex 2.tex 3.tex -p
 ```
 
-Output for each table can be saved into a different file
+Output for each table is saved into a different file
 with the --separate-outfiles (-oo) option and an optional list of output file names specified.
+Alternatively, an output directory can be passed after -oo.
 If no file name comes after -oo,
 the same file names for the .csv files will be used
 (replacing .csv extension with .tex, or appending .tex if no .csv extension is included in the filename).
