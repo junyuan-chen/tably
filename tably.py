@@ -70,10 +70,7 @@ class Tably:
         self.fragment = args.fragment
         self.fragment_skip_header = args.fragment_skip_header
         self.replace = args.replace
-        if args.no_escape:
-            self.tex_str = do_not_escape
-        else:
-            self.tex_str = escape
+        self.tex_str = escape if not args.no_escape else lambda x: x
 
     def run(self):
         """The main method.
@@ -213,10 +210,6 @@ def get_sep(sep):
         return ','
     else:
         return sep
-
-
-def do_not_escape(line):
-    return line
 
 
 def escape(line):
